@@ -13,16 +13,18 @@ CATEGORIES = {
     "agents": "AI agents, AI coding tools, Claude/ChatGPT workflows, building with AI, dev tools",
     "quant": "quant finance, trading systems, markets, investing analysis",
     "career": "tech careers, internships, interviews, job search, recruiting",
-    "build": "startups, product, shipping projects, founders, distribution",
+    "build": "startups, founder lessons, product, validating demand, shipping projects, distribution",
     "content": "growing on X/social media, personal brand, content strategy",
-    "hustle": "get-rich-quick, 'make $X/month with AI', 'sell X to businesses for $Y', faceless channels, "
-    "clipping, cold-calling small businesses, side-hustle and money-claim bait",
-    "other": "anything else: lifestyle, fashion, fitness, dating, news, entertainment, memes",
+    "mindset": "ambition, discipline, focus, career philosophy, resisting distraction",
+    "hustle": "pure money-claim bait with no method: 'make $X/month with AI', faceless channels, clipping",
+    "other": "anything else: lifestyle, travel, nightlife, fashion, fitness, dating, news, entertainment, memes",
 }
 
 GOALS = (
     "The user is a student pivoting into ML/AI engineering. Goals: go deep on ML, quant and AI agents, "
-    "land an internship at a top AI company (NVIDIA, AMD, YC startups), ship impressive projects, grow on X."
+    "land an internship at a top AI company (NVIDIA, AMD, YC startups), ship impressive projects, grow on X. "
+    "He also values: practical Claude Code / AI-agent tooling he can use today, founder and startup lessons, "
+    "building and validating a business, and mindset or discipline content with a real idea in it."
 )
 
 SCHEMA = {
@@ -55,10 +57,14 @@ def build_prompt(items: list[dict]) -> str:
     return (
         f"{GOALS}\n\nCategories:\n{cats}\n\n"
         "For each saved item below, pick ONE category and a score 0-10 for how useful it is for the user's goals "
-        "(10 = concrete, technical, worth an hour; 0 = noise). Be strict: most saves are 2-5. "
-        "Reserve 8+ for things that teach real ML/quant/agent skills or are directly useful for landing the job. "
-        "Any item whose hook is a money claim is 'hustle' and scores 0-2, even if it mentions AI. "
-        "Generic motivation and self-help score 0-3. Lifestyle is 'other', never 'hustle'. "
+        "(10 = concrete, technical, worth an hour; 0 = noise). 6 or more means 'worth going back to'. "
+        "8+ is for things that teach real ML/quant/agent skills or are directly useful for landing the job. "
+        "Practical Claude Code, AI-agent and dev-tooling workflows score 6-8. "
+        "Founder lessons, startup stories and business validation score 6-7. "
+        "Mindset and discipline content scores 6 if it carries a real idea, 2-3 if it is only platitudes. "
+        "A money angle with a concrete method (e.g. building and selling a product) is 'build', not 'hustle'; "
+        "pure money-claim bait with no method is 'hustle' and scores 0-2. "
+        "Lifestyle, travel, nightlife, fashion and dating are 'other' and score 0-2. "
         "Items with no title and no summary score 0. 'why' is max 12 words.\n\n"
         + "\n".join(lines)
     )

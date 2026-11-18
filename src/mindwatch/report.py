@@ -5,7 +5,7 @@ from collections import Counter
 from datetime import date
 from pathlib import Path
 
-SIGNAL = 7  # score threshold for "actually worth your time"
+SIGNAL = 6  # score threshold for "worth going back to" (v2 prompt)
 
 
 def load(path: Path) -> list[dict]:
