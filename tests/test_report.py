@@ -1,4 +1,21 @@
-from mindwatch.report import join, stats, top
+from mindwatch.report import clean_url, digest_md, join, stats, top
+
+
+def test_clean_url_drops_tracking_but_keeps_what_links_need():
+    assert clean_url("https://www.instagram.com/reel/abc/?igsh=x&stkn=y&xtok=z") == "https://www.instagram.com/reel/abc/"
+    assert clean_url("https://www.instagram.com/p/abc/?img_index=3&igsh=x") == "https://www.instagram.com/p/abc/?img_index=3"
+    assert clean_url("https://www.linkedin.com/posts/x?utm_source=share&rcm=ACoAAB123") == "https://www.linkedin.com/posts/x"
+    assert clean_url("https://www.youtube.com/watch?v=abc&si=track&t=42") == "https://www.youtube.com/watch?v=abc&t=42"
+    assert clean_url("https://x.com/u/status/1?s=46&t=track") == "https://x.com/u/status/1"
+    assert clean_url(None) is None
+
+
+def test_digest_never_writes_tracking_params():
+    rows = join(
+        [{"id": "a", "title": "t", "summary": "", "url": "https://www.linkedin.com/x?rcm=ACoAAB123", "created": "2026-05-01"}],
+        [{"id": "a", "cat": "ml", "score": 9, "why": "w"}],
+    )
+    assert "rcm" not in digest_md(rows) and "https://www.linkedin.com/x" in digest_md(rows)
 
 
 SAVES = [
@@ -25,7 +42,7 @@ def test_stats_counts_categories_and_shares():
     assert s["total"] == 3
     assert s["by_cat"]["ml"] == 2
     assert round(s["share"]["hustle"], 3) == round(1 / 3, 3)
-    assert s["signal"] == 2  # score >= 7
+    assert s["signal"] == 2  # score >= SIGNAL
 
 
 def test_top_sorts_by_score_and_dedupes_titles():

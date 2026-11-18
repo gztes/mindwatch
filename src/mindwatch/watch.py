@@ -4,6 +4,8 @@ import json
 import subprocess
 from pathlib import Path
 
+from mindwatch.report import clean_url
+
 VIDEO_TYPES = {"YouTubeVideo", "InstagramReel", "TikTokPost", "Video", "XPost"}
 MAX_SECONDS = 25 * 60  # longer videos are courses: flag them, don't transcribe them
 MIN_WORDS = 40  # below this the video is music or on-screen text, nothing to extract
@@ -89,7 +91,7 @@ def note_md(item: dict, x: dict) -> str:
     lines = [
         f"# {item.get('title') or '(untitled)'}",
         "",
-        f"Source: {item.get('url')} · score {item.get('score')} · `{item.get('cat')}`",
+        f"Source: {clean_url(item.get('url'))} · score {item.get('score')} · `{item.get('cat')}`",
         "",
         f"**TL;DR:** {x.get('tldr', '')}",
         "",

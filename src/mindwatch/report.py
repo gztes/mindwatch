@@ -4,8 +4,24 @@ import json
 from collections import Counter
 from datetime import date
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 SIGNAL = 6  # score threshold for "worth going back to" (v2 prompt)
+
+# Allowlist, not blocklist: Instagram alone uses ~15 opaque share tokens (igsh, stkn,
+# xtok...) and LinkedIn's rcm carries the sharer's member id. Keep only what a link
+# needs to resolve; drop everything else before a URL is written anywhere.
+KEEP_PARAMS = {"v", "list", "img_index"}
+YOUTUBE = {"youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"}
+
+
+def clean_url(url: str | None) -> str | None:
+    if not url:
+        return url
+    parts = urlsplit(url)
+    keep = KEEP_PARAMS | ({"t"} if parts.netloc in YOUTUBE else set())
+    query = urlencode([(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True) if k in keep])
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
 
 
 def load(path: Path) -> list[dict]:
@@ -44,6 +60,11 @@ def top(rows: list[dict], n: int = 25, cat: str | None = None) -> list[dict]:
     return out
 
 
+def _link(r: dict) -> str:
+    title = r.get("title") or "(untitled)"
+    return f"[{title}]({clean_url(r['url'])})" if r.get("url") else title
+
+
 def digest_md(rows: list[dict]) -> str:
     s = stats(rows)
     pct = lambda c: f"{100 * s['share'].get(c, 0):.0f}%"
@@ -61,14 +82,12 @@ def digest_md(rows: list[dict]) -> str:
         "",
     ]
     for r in top(rows, 25):
-        link = f"[{r['title'] or '(untitled)'}]({r['url']})" if r.get("url") else (r["title"] or "(untitled)")
-        lines.append(f"- **{r['score']}** `{r['cat']}` {link}: {r['why']}")
-    for cat in ("ml", "agents", "quant", "career"):
+        lines.append(f"- **{r['score']}** `{r['cat']}` {_link(r)}: {r['why']}")
+    for cat in ("ml", "agents", "quant", "career", "build", "mindset"):
         picks = top(rows, 10, cat)
         if not picks:
             continue
         lines += ["", f"## Best of {cat}", ""]
         for r in picks:
-            link = f"[{r['title'] or '(untitled)'}]({r['url']})" if r.get("url") else r["title"]
-            lines.append(f"- **{r['score']}** {link}: {r['why']}")
+            lines.append(f"- **{r['score']}** {_link(r)}: {r['why']}")
     return "\n".join(lines) + "\n"
